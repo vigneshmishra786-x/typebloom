@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="TypeBloom — a calm, nature-inspired typing and spelling practice website. Grow your garden as you type." />
+  <meta name="theme-color" content="#eaf7ee" />
+  <title>TypeBloom — Grow Your Typing Garden 🌱</title>
+
+  <!-- Favicon (inline SVG plant sprout, no external assets) -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E🌱%3C/text%3E%3C/svg%3E" />
+
+  <!-- Google Fonts: Poppins for headings, Inter for body -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <!--
+    Supabase JavaScript SDK v2 loaded via CDN BEFORE script.js.
+    This exposes the global `supabase` object used in script.js.
+    We use a pinned version (v2.39.x) for stability.
+  -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Skip link for keyboard users -->
+  <a href="#main" class="skip-link">Skip to main content</a>
+
+  <!-- ===================== Navigation ===================== -->
+  <header class="navbar" role="banner">
+    <div class="container nav-inner">
+      <a href="#top" class="brand" aria-label="TypeBloom home">
+        <span class="brand-logo" aria-hidden="true">🌱</span>
+        <span class="brand-name">TypeBloom</span>
+      </a>
+
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#practice">Practice</a>
+        <a href="#dashboard">Dashboard</a>
+        <a href="#garden">Garden</a>
+        <a href="#history">History</a>
+      </nav>
+
+      <div class="nav-auth">
+        <!-- Account status pill -->
+        <span id="account-status" class="account-pill" aria-live="polite">
+          <span class="dot" aria-hidden="true"></span>
+          <span class="account-label">Checking…</span>
+        </span>
+        <button id="auth-toggle-btn" class="btn btn-ghost" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="auth-panel">
+          Sign in
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <span id="top" tabindex="-1"></span>
+    <div class="container">
+
+      <!-- ===================== Hero ===================== -->
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-text">
+          <h1 id="hero-title" class="hero-title">Bloom into faster, calmer typing.</h1>
+          <p class="hero-sub">
+            TypeBloom is a calm, nature-inspired typing practice space. Practise at your own pace,
+            track real progress, and grow a tiny garden with every session you finish.
+          </p>
+          <div class="hero-cta">
+            <a href="#practice" class="btn btn-primary btn-lg" id="hero-start-btn">
+              <span aria-hidden="true">✿</span> Start practising
+            </a>
+            <a href="#dashboard" class="btn btn-ghost btn-lg">View dashboard</a>
+          </div>
+          <p class="hero-hint" id="hero-hint">Tip: pick a mood that matches how you feel — it shapes your passage and encouragement.</p>
+        </div>
+
+        <div class="hero-art" aria-hidden="true">
+          <!-- Inline SVG illustration, no external assets -->
+          <svg viewBox="0 0 320 320" role="img" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="leafGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#9ad9a8"/>
+                <stop offset="100%" stop-color="#3f8f5a"/>
+              </linearGradient>
+              <linearGradient id="potGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#f0c98b"/>
+                <stop offset="100%" stop-color="#c98a4b"/>
+              </linearGradient>
+            </defs>
+            <ellipse cx="160" cy="280" rx="120" ry="14" fill="#00000010"/>
+            <path d="M160 250 C120 230 110 190 130 160 C150 190 150 220 160 250 Z" fill="url(#leafGrad)" opacity=".95"/>
+            <path d="M160 250 C200 230 210 190 190 160 C170 190 170 220 160 250 Z" fill="url(#leafGrad)" opacity=".95"/>
+            <path d="M160 250 C160 210 160 170 160 140 C175 170 175 210 160 250 Z" fill="#2f7d49"/>
+            <rect x="120" y="250" width="80" height="40" rx="8" fill="url(#potGrad)"/>
+            <path d="M120 250 q40 12 80 0" fill="none" stroke="#00000020" stroke-width="2"/>
+            <circle cx="160" cy="135" r="14" fill="#ffd166"/>
+            <circle cx="160" cy="135" r="6" fill="#fff" opacity=".8"/>
+          </svg>
+        </div>
+      </section>
+
+      <!-- ===================== Auth panel (collapsible) ===================== -->
+      <section id="auth-panel" class="auth-panel" aria-labelledby="auth-title" hidden>
+        <div class="card auth-card">
+          <h2 id="auth-title" class="card-title">Sign in to save your progress</h2>
+          <p class="card-sub" id="auth-sub">Create an account or log in to sync typing history and your garden across devices.</p>
+
+          <!-- Tabs: Login / Register -->
+          <div class="auth-tabs" role="tablist" aria-label="Authentication mode">
+            <button id="tab-login" class="auth-tab active" role="tab" aria-selected="true" aria-controls="login-form" type="button">Log in</button>
+            <button id="tab-register" class="auth-tab" role="tab" aria-selected="false" aria-controls="register-form" type="button">Register</button>
+          </div>
+
+          <!-- Login form -->
+          <form id="login-form" class="auth-form" role="tabpanel" aria-labelledby="tab-login" novalidate>
+            <div class="field">
+              <label for="login-email">Email</label>
+              <input id="login-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com" />
+            </div>
+            <div class="field">
+              <label for="login-password">Password</label>
+              <input id="login-password" name="password" type="password" autocomplete="current-password" required minlength="6" placeholder="At least 6 characters" />
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" id="login-submit">Log in</button>
+            
+<button type="button" id="forgot-password-btn">
+  Forgot Password?
+</button>
+
+          </form>
+
+          <!-- Register form -->
+          <form id="register-form" class="auth-form" role="tabpanel" aria-labelledby="tab-register" hidden novalidate>
+            <div class="field">
+              <label for="register-email">Email</label>
+              <input id="register-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com" />
+            </div>
+            <div class="field">
+              <label for="register-password">Password</label>
+              <input id="register-password" name="password" type="password" autocomplete="new-password" required minlength="6" placeholder="Choose at least 6 characters" />
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" id="register-submit">Create account</button>
+          </form>
+
+          <p class="auth-note" id="auth-note" aria-live="polite">We never store your password. Authentication is handled by Supabase.</p>
+
+          <button type="button" class="btn btn-ghost btn-block" id="signout-btn" hidden>Sign out</button>
+        </div>
+      </section>
+
+      <!-- ===================== Dashboard ===================== -->
+      <section id="dashboard" class="section" aria-labelledby="dashboard-title">
+        <div class="section-head">
+          <h2 id="dashboard-title" class="section-title">Your dashboard</h2>
+          <p class="section-sub" id="dashboard-sub">Sign in to load your saved stats. Otherwise, today's local practice is shown here.</p>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon" aria-hidden="true">⚡</div>
+            <div class="stat-label">Current WPM</div>
+            <div class="stat-value" id="stat-wpm">0</div>
+            <div class="stat-foot" id="stat-wpm-foot">No session yet</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" aria-hidden="true">🎯</div>
+            <div class="stat-label">Accuracy</div>
+            <div class="stat-value" id="stat-accuracy">100%</div>
+            <div class="stat-foot" id="stat-accuracy-foot">No session yet</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" aria-hidden="true">❗</div>
+            <div class="stat-label">Total errors</div>
+            <div class="stat-value" id="stat-errors">0</div>
+            <div class="stat-foot" id="stat-errors-foot">No session yet</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" aria-hidden="true">🌱</div>
+            <div class="stat-label">Sessions</div>
+            <div class="stat-value" id="stat-sessions">0</div>
+            <div class="stat-foot" id="stat-sessions-foot">Grow your plant</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== Mood selector ===================== -->
+      <section id="mood" class="section" aria-labelledby="mood-title">
+        <div class="section-head">
+          <h2 id="mood-title" class="section-title">How are you feeling?</h2>
+          <p class="section-sub">Pick a mood. It will gently shape your passage and encouragement messages.</p>
+        </div>
+
+        <div class="mood-grid" role="radiogroup" aria-label="Select a mood">
+          <button class="mood-chip" role="radio" aria-checked="false" data-mood="calm" type="button">
+            <span class="mood-emoji" aria-hidden="true">🌿</span>
+            <span class="mood-name">Calm</span>
+          </button>
+          <button class="mood-chip selected" role="radio" aria-checked="true" data-mood="focused" type="button">
+            <span class="mood-emoji" aria-hidden="true">🎯</span>
+            <span class="mood-name">Focused</span>
+          </button>
+          <button class="mood-chip" role="radio" aria-checked="false" data-mood="energetic" type="button">
+            <span class="mood-emoji" aria-hidden="true">⚡</span>
+            <span class="mood-name">Energetic</span>
+          </button>
+          <button class="mood-chip" role="radio" aria-checked="false" data-mood="tired" type="button">
+            <span class="mood-emoji" aria-hidden="true">🌙</span>
+            <span class="mood-name">Tired</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ===================== Typing practice ===================== -->
+      <section id="practice" class="section" aria-labelledby="practice-title">
+        <div class="section-head">
+          <h2 id="practice-title" class="section-title">Typing practice</h2>
+          <p class="section-sub">Choose a difficulty and duration, then press Start. The timer begins on your first keystroke.</p>
+        </div>
+
+        <div class="card practice-card">
+          <!-- Setup controls -->
+          <div class="practice-setup">
+            <fieldset class="setup-group">
+              <legend>Difficulty</legend>
+              <div class="chip-row" role="radiogroup" aria-label="Difficulty">
+                <button class="chip selected" role="radio" aria-checked="true" data-difficulty="beginner" type="button">Beginner</button>
+                <button class="chip" role="radio" aria-checked="false" data-difficulty="intermediate" type="button">Intermediate</button>
+                <button class="chip" role="radio" aria-checked="false" data-difficulty="advanced" type="button">Advanced</button>
+              </div>
+            </fieldset>
+
+            <fieldset class="setup-group">
+              <legend>Duration</legend>
+              <div class="chip-row" role="radiogroup" aria-label="Duration">
+                <button class="chip selected" role="radio" aria-checked="true" data-duration="30" type="button">30s</button>
+                <button class="chip" role="radio" aria-checked="false" data-duration="60" type="button">60s</button>
+                <button class="chip" role="radio" aria-checked="false" data-duration="120" type="button">120s</button>
+              </div>
+            </fieldset>
+          </div>
+
+          <!-- Live metrics while typing -->
+          <div class="live-metrics" aria-live="polite">
+            <div class="live-metric">
+              <span class="live-label">Time</span>
+              <span class="live-value" id="live-time">30s</span>
+            </div>
+            <div class="live-metric">
+              <span class="live-label">WPM</span>
+              <span class="live-value" id="live-wpm">0</span>
+            </div>
+            <div class="live-metric">
+              <span class="live-label">Accuracy</span>
+              <span class="live-value" id="live-accuracy">100%</span>
+            </div>
+            <div class="live-metric">
+              <span class="live-label">Errors</span>
+              <span class="live-value" id="live-errors">0</span>
+            </div>
+          </div>
+
+          <!-- Passage display -->
+          <div id="passage" class="passage" role="region" aria-label="Passage to type">
+            <span class="passage-placeholder">Press <strong>Start</strong> to load a passage.</span>
+          </div>
+
+          <!-- Hidden input is used to capture keystrokes; live result area shows progress -->
+          <label class="sr-only" for="typing-input">Type the passage here</label>
+          <textarea
+            id="typing-input"
+            class="typing-input"
+            rows="2"
+            placeholder="Click Start, then start typing here…"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            disabled></textarea>
+
+          <!-- Controls -->
+          <div class="practice-controls">
+            <button id="start-btn" class="btn btn-primary" type="button">Start</button>
+            <button id="finish-btn" class="btn btn-secondary" type="button" disabled>Finish</button>
+            <button id="restart-btn" class="btn btn-ghost" type="button">Restart</button>
+            <span class="practice-status" id="practice-status" aria-live="polite">Ready.</span>
+          </div>
+
+          <!-- Results summary (hidden until a session ends) -->
+          <div id="results" class="results" hidden aria-live="polite">
+            <h3 class="results-title">Session complete 🌷</h3>
+            <div class="results-grid">
+              <div class="result-item">
+                <span class="result-label">WPM</span>
+                <span class="result-value" id="result-wpm">0</span>
+              </div>
+              <div class="result-item">
+                <span class="result-label">Accuracy</span>
+                <span class="result-value" id="result-accuracy">0%</span>
+              </div>
+              <div class="result-item">
+                <span class="result-label">Errors</span>
+                <span class="result-value" id="result-errors">0</span>
+              </div>
+              <div class="result-item">
+                <span class="result-label">Duration</span>
+                <span class="result-value" id="result-duration">0s</span>
+              </div>
+            </div>
+            <p class="result-message" id="result-message">Nice work!</p>
+            <p class="result-save" id="result-save" aria-live="polite"></p>
+            <button id="results-close" class="btn btn-ghost" type="button">Close</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== Garden ===================== -->
+      <section id="garden" class="section" aria-labelledby="garden-title">
+        <div class="section-head">
+          <h2 id="garden-title" class="section-title">Your garden 🌷</h2>
+          <p class="section-sub" id="garden-sub">Finish practice sessions to grow your plant. Progress is saved with your account.</p>
+        </div>
+
+        <div class="card garden-card">
+          <div class="garden-stage" id="garden-stage" role="img" aria-labelledby="garden-stage-label">
+            <div class="plant-art" id="plant-art" aria-hidden="true"></div>
+            <span id="garden-stage-label" class="sr-only">Plant stage: seed</span>
+          </div>
+
+          <div class="garden-info">
+            <div class="garden-label">
+              <span class="garden-stage-name" id="garden-stage-name">Seed</span>
+              <span class="garden-stage-count" id="garden-stage-count">0 sessions</span>
+            </div>
+            <div class="garden-progress" aria-hidden="true">
+              <div class="garden-progress-bar" id="garden-progress-bar" style="width:0%"></div>
+            </div>
+            <p class="garden-progress-text" id="garden-progress-text" aria-live="polite">Finish 1 session to sprout.</p>
+            <p class="garden-message" id="garden-message">Plant your first seed today.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== History ===================== -->
+      <section id="history" class="section" aria-labelledby="history-title">
+        <div class="section-head">
+          <h2 id="history-title" class="section-title">Practice history</h2>
+          <p class="section-sub" id="history-sub">Your last 10 saved sessions appear here. Sign in to sync across devices.</p>
+        </div>
+
+        <div class="card history-card">
+          <div id="history-empty" class="empty-state">
+            <span class="empty-emoji" aria-hidden="true">🗂️</span>
+            <p>No saved sessions yet.</p>
+            <p class="empty-hint">Complete a session while signed in to see it here.</p>
+          </div>
+
+          <div class="history-list" id="history-list" role="list" aria-label="Saved practice sessions"></div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ===================== Footer ===================== -->
+  <footer class="footer" role="contentinfo">
+    <div class="container footer-inner">
+      <p>🌱 TypeBloom — practise gently, grow daily.</p>
+      <p class="footer-meta">Built with vanilla HTML, CSS, JavaScript &amp; Supabase. No frameworks.</p>
+    </div>
+  </footer>
+
+  <!-- Toast for non-blocking messages -->
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <!-- Application script — loaded AFTER Supabase SDK -->
+  <script src="script.js" defer></script>
+</body>
+</html>
